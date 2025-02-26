@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
-from app.models import Base, User, Children
+from app.models import Base, User, Child
 
 DATABASE_URL_TEST = "postgresql://test_postgres:test_postgres@localhost:5435/test_steps_db"
 
