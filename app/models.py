@@ -1,48 +1,49 @@
 
-from sqlalchemy import Integer,BigInteger, Column, Boolean,String,Text,Date,ForeignKey,create_engine
-from sqlalchemy.orm import sessionmaker, relationship, declarative_base
+from sqlalchemy import Integer,BigInteger, Column, Boolean,String,Text,Date,ForeignKey,create_engine, MetaData
+from sqlalchemy.orm import sessionmaker, relationship, DeclarativeBase
 
-Base = declarative_base()
+class Base(DeclarativeBase):
+    metadata = MetaData()
 
 class User(Base):
     __tablename__ = 'users'
 
-    id = Column(Integer,primary_key=True,autoincrement=True)
-    telegram_id = Column(BigInteger,unique=True)
-    childrens = relationship('Children',back_populates='user')
+    id = Column(Integer,primary_key=True, autoincrement=True)
+    telegram_id = Column(BigInteger, unique=True)
+    children = relationship('Child', back_populates='user')
 
     def __repr__(self):
-        return f"{self.telegram_id}"
+        return f"User <{self.telegram_id}>"
     
-class Children(Base):
-    __tablename__ = 'childrens'
+class Child(Base):
+    __tablename__ = 'children'
 
     id = Column(Integer,primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     name = Column(String, nullable=False)
     birth_date = Column(Date, nullable=False)
 
-    user = relationship('User',back_populates='childrens')
-    diagnosis_history = relationship("DiagnosisHistory",back_populates='child')
-    diagnosis_result = relationship("DiagnosisResult",back_populates='child')
+    user = relationship('User',back_populates='children')
+    diagnosis_history = relationship("DiagnosisHistory", back_populates='child')
+    diagnosis_result = relationship("DiagnosisResult", back_populates='child')
 
     def __repr__(self):
-        return f'{self.user_id}, {self.name} {self.birth_date}'
+        return f'<{self.name} {self.birth_date}>'
 
-class SkillTypes(Base):
+class SkillType(Base):
     __tablename__ = 'skill_types'
 
     id = Column(Integer,primary_key=True, autoincrement=True)
     name = Column(String, unique=True, index=True)
 
-    skills = relationship("Skills",back_populates='skill_type')
-    diagnosis_result = relationship("DiagnosisResult",back_populates='skill_type')
-    diagnosis_history = relationship("DiagnosisHistory",back_populates='skill_type')
+    skill = relationship("Skill", back_populates='skill_type')
+    diagnosis_result = relationship("DiagnosisResult", back_populates='skill_type')
+    diagnosis_history = relationship("DiagnosisHistory", back_populates='skill_type')
 
     def __repr__(self):
         return f"{self.name}"
     
-class Skills(Base):
+class Skill(Base):
     __tablename__ = 'skills'
 
     id = Column(Integer,primary_key=True, autoincrement=True)
@@ -54,8 +55,8 @@ class Skills(Base):
     age_end = Column(Integer)
     actual_age = Column(Integer)
 
-    skill_type = relationship("SkillTypes", back_populates='skills')
-    diagnosis_history = relationship("DiagnosisHistory",back_populates='skill')
+    skill_type = relationship("SkillType", back_populates='skill')
+    diagnosis_history = relationship("DiagnosisHistory", back_populates='skill')
    
 
 
@@ -70,11 +71,11 @@ class DiagnosisHistory(Base):
     skill_type_id = Column(Integer, ForeignKey("skill_types.id"), nullable=False)
     date = Column(Date)
     mastered = Column(Boolean)
-    child_id = Column(Integer, ForeignKey('childrens.id'), nullable=False)
+    child_id = Column(Integer, ForeignKey('children.id'), nullable=False)
 
-    skill = relationship("Skills", back_populates='diagnosis_history')
-    skill_type = relationship("SkillTypes", back_populates='diagnosis_history')
-    child = relationship("Children", back_populates='diagnosis_history')
+    skill = relationship("Skill", back_populates='diagnosis_history')
+    skill_type = relationship("SkillType", back_populates='diagnosis_history')
+    child = relationship("Child", back_populates='diagnosis_history')
 
     def __repr__(self):
         return f"{self.child_id} {self.skill} {self.mastered}"
@@ -83,13 +84,13 @@ class DiagnosisResult(Base):
     __tablename__ = 'diagnosis_result'
 
     id = Column(Integer,primary_key=True, autoincrement=True)
-    child_id = Column(Integer, ForeignKey('childrens.id'), nullable=False)
+    child_id = Column(Integer, ForeignKey('children.id'), nullable=False)
     date = Column(Date)
     skill_types_id = Column(Integer, ForeignKey("skill_types.id"), nullable=False)
     age_assessment = Column(Integer)
 
-    skill_type = relationship("SkillTypes",back_populates='diagnosis_result')
-    child = relationship('Children',back_populates='diagnosis_result')
+    skill_type = relationship("SkillType", back_populates='diagnosis_result')
+    child = relationship('Child', back_populates='diagnosis_result')
 
 
     def __repr__(self):
@@ -98,9 +99,14 @@ class DiagnosisResult(Base):
 
 
 
-DATABASE_URL_TEST = "postgresql://test_postgres:test_postgres@localhost:5435/test_steps_db"
-engine = create_engine(DATABASE_URL_TEST)
+DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/steps_db"
+engine = create_engine(DATABASE_URL)
 
 if __name__ == "__main__":
-    Base.metadata.drop_all(engine)
+    print(Base.metadata)
     Base.metadata.create_all(engine)
+    print(Base.metadata)
+    Base.metadata.reflect(engine)
+    Base.metadata.drop_all(bind=engine)
+    print(Base.metadata)
+    # Base.metadata.create_all(engine)
