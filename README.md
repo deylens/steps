@@ -1,6 +1,6 @@
-# Small Steps, Big Road
+# Tiny Steps, Big Road
 
-This project, **Small Steps, Big Road**, aims to support parents and professionals in early child development diagnostics. Our goal is to provide easy-to-use tools for parents to track and improve their child's skills with personalized recommendations.
+This project, **Tiny Steps, Big Road**, aims to support parents and professionals in early child development diagnostics. Our goal is to provide easy-to-use tools for parents to track and improve their child's skills with personalized recommendations.
 
 ---
 
