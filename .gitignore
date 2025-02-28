@@ -27,7 +27,7 @@ share/python-wheels/
 MANIFEST
 .venv/
 src/database/pgdata_test/
-src/database/pgdata_test/
+src/database/pgdata_main/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
