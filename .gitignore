@@ -27,7 +27,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 .venv/
-.vscode
+./.vscode
 src/database/pgdata_test/
 src/database/pgdata_main/
 
