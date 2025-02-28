@@ -11,7 +11,7 @@ services:
         POSTGRES_PASSWORD: postgres
         POSTGRES_DB: steps_db
       volumes:
-        - ./pgdata_main:/var/lib/postgresql/data
+        - ./src/database/pgdata_main:/var/lib/postgresql/data
       
       ports:
         - 5432:5432
@@ -25,7 +25,7 @@ services:
         POSTGRES_PASSWORD: test_postgres
         POSTGRES_DB: test_steps_db
       volumes:
-        - ./pgdata_test:/var/lib/postgresql/data
+        - ./src/database/pgdata_test:/var/lib/postgresql/data
       
       ports:
         - 5435:5432

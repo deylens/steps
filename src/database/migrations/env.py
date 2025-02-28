@@ -7,21 +7,9 @@ from sqlalchemy import pool
 from alembic import context
 
 from src.models.database import models
+from src.config import settings
 
 
-
-def get_url():
-    db_name = os.getenv('DB_NAME')
-    db_user = os.getenv('DB_USER')
-    db_password = os.getenv('DB_PASSWORD')
-    db_port = os.getenv('DB_PORT')
-    db_driver = os.getenv('DB_DRIVER')
-    db_host = os.getenv('DB_HOST')
-    
-    if not all([db_name, db_user, db_password, db_port, db_driver, db_host]):
-        raise ValueError("One or more environment variables are missing!")
-
-    return f'{db_driver}://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
@@ -31,7 +19,7 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-database_url = get_url()
+database_url = settings.db_config.get_url
 if database_url is None:
     raise ValueError("DATABASE_URL environment variable is not set")
 

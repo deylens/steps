@@ -2,14 +2,14 @@
 name = "gh-steps"
 version = "0.1.0"
 description = "Благотворительный проект."
-readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "alembic>=1.14.1",
     "fastapi[standard]>=0.115.8",
-    "psycopg2>=2.9.10",
     "pydantic-settings>=2.8.0",
     "sqlalchemy>=2.0.38",
+    "pytest>=8.3.4",
+    "psycopg2-binary>=2.9.10",
 ]
 
 [dependency-groups]
@@ -20,7 +20,6 @@ dev = [
 [tool.ruff]
 select = ["I", "UP", "B", "A"]
 include = ["src/**/*.py"]
-
 
 [tool.pytest.ini_options]
 testpaths = "tests/"
