@@ -1,8 +1,8 @@
 """Base tables
 
-Revision ID: 7ef17305d1d6
-Revises: 71c80f084a54
-Create Date: 2025-03-04 14:57:05.702457
+Revision ID: 8ee613b7c0df
+Revises: 
+Create Date: 2025-03-05 17:20:33.246363
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '7ef17305d1d6'
-down_revision: Union[str, None] = '71c80f084a54'
+revision: str = '8ee613b7c0df'
+down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -23,9 +23,9 @@ def upgrade() -> None:
     op.create_table('skill_types',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('name', sa.String(length=50), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('name')
     )
-    op.create_index(op.f('ix_skill_types_name'), 'skill_types', ['name'], unique=True)
     op.create_table('users',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('telegram_id', sa.BigInteger(), nullable=False),
@@ -84,6 +84,5 @@ def downgrade() -> None:
     op.drop_table('skills')
     op.drop_table('children')
     op.drop_table('users')
-    op.drop_index(op.f('ix_skill_types_name'), table_name='skill_types')
     op.drop_table('skill_types')
     # ### end Alembic commands ###
