@@ -1,7 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-DOTENV = ".env"
 
 
 class DBSettings(BaseSettings):
