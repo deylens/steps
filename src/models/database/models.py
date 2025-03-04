@@ -48,7 +48,7 @@ class SkillType(Base):
     __tablename__ = 'skill_types'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(50), unique=True, index=True)
+    name: Mapped[str] = mapped_column(String(50), unique=True)
     skill: Mapped[list["Skill"]] = relationship(back_populates='skill_type')
 
     diagnosis_result: Mapped[list["DiagnosisResult"]] = relationship(back_populates='skill_type')
