@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 import os
+=======
+>>>>>>> 5b2ecbb8756cc92dd5e988d30da3f83f04eee85e
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -6,9 +9,14 @@ from sqlalchemy import pool
 
 from alembic import context
 
+<<<<<<< HEAD
 from src.models.database import models
 from src.config import settings
 
+=======
+from src.config import settings
+from src.models.database import models
+>>>>>>> 5b2ecbb8756cc92dd5e988d30da3f83f04eee85e
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -19,7 +27,12 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
+<<<<<<< HEAD
 database_url = settings.db_config.get_url
+=======
+
+database_url = settings.db_config.db_url
+>>>>>>> 5b2ecbb8756cc92dd5e988d30da3f83f04eee85e
 if database_url is None:
     raise ValueError("DATABASE_URL environment variable is not set")
 
