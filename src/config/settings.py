@@ -1,9 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-DOTENV = ".env"
-
-
 class DBSettings(BaseSettings):
     postgres_user: str
     postgres_password: str
@@ -12,7 +9,7 @@ class DBSettings(BaseSettings):
     postgres_port: int
     driver: str
 
-    model_config = SettingsConfigDict(env_file=DOTENV, env_file_encoding='utf-8', extra='ignore')
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding='utf-8', extra='ignore')
 
     @property
     def db_url(self):
