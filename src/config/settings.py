@@ -30,7 +30,7 @@ class DBTestSettings(BaseSettings):
 
     @property
     def get_url(self):
-        return f"{self.driver}://{self.db_user}:{self.password}@{self.host}:{self.port}/{self.name}"
+        return f"{self.driver_test}://{self.db_user_test}:{self.password_test}@{self.host_test}:{self.port_test}/{self.name_test}"
 
 
 
