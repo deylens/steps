@@ -1,3 +1,4 @@
+# ruff:noqa:UP037
 from __future__ import annotations
 
 from datetime import date
@@ -16,7 +17,7 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True)
 
-    children: Mapped[list["Child"]] = relationship(back_populates="user")  # noqa: UP037
+    children: Mapped[list["Child"]] = relationship(back_populates="user")
 
     def __repr__(self) -> str:
         return f"User <{self.telegram_id}>"
@@ -30,11 +31,11 @@ class Child(Base):
     name: Mapped[str] = mapped_column(String(30), nullable=False)
     birth_date: Mapped[date] = mapped_column(Date, nullable=False)
 
-    user: Mapped["User"] = relationship("User", back_populates="children")  # noqa: UP037
-    diagnosis_history: Mapped[list["DiagnosisHistory"]] = relationship(  # noqa: UP037
+    user: Mapped["User"] = relationship("User", back_populates="children")
+    diagnosis_history: Mapped[list["DiagnosisHistory"]] = relationship(
         back_populates="child"
     )
-    diagnosis_result: Mapped[list["DiagnosisResult"]] = relationship(  # noqa: UP037
+    diagnosis_result: Mapped[list["DiagnosisResult"]] = relationship(
         back_populates="child"
     )
 
@@ -47,12 +48,12 @@ class SkillType(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(50), unique=True)
-    skill: Mapped[list["Skill"]] = relationship(back_populates="skill_type")  # noqa: UP037
+    skill: Mapped[list["Skill"]] = relationship(back_populates="skill_type")
 
-    diagnosis_result: Mapped[list["DiagnosisResult"]] = relationship(  # noqa: UP037
+    diagnosis_result: Mapped[list["DiagnosisResult"]] = relationship(
         back_populates="skill_type"
     )
-    diagnosis_history: Mapped[list["DiagnosisHistory"]] = relationship(  # noqa: UP037
+    diagnosis_history: Mapped[list["DiagnosisHistory"]] = relationship(
         back_populates="skill_type"
     )
 
@@ -74,8 +75,8 @@ class Skill(Base):
     age_end: Mapped[int] = mapped_column()
     age_actual: Mapped[int] = mapped_column()
 
-    skill_type: Mapped["SkillType"] = relationship(back_populates="skill")  # noqa: UP037
-    diagnosis_history: Mapped[list["DiagnosisHistory"]] = relationship(  # noqa: UP037
+    skill_type: Mapped["SkillType"] = relationship(back_populates="skill")
+    diagnosis_history: Mapped[list["DiagnosisHistory"]] = relationship(
         back_populates="skill"
     )
 
@@ -95,9 +96,9 @@ class DiagnosisHistory(Base):
     mastered: Mapped[bool] = mapped_column(Boolean)
     child_id: Mapped[int] = mapped_column(ForeignKey("children.id"), nullable=False)
 
-    skill: Mapped["Skill"] = relationship(back_populates="diagnosis_history")  # noqa: UP037
-    skill_type: Mapped["SkillType"] = relationship(back_populates="diagnosis_history")  # noqa: UP037
-    child: Mapped["Child"] = relationship(back_populates="diagnosis_history")  # noqa: UP037
+    skill: Mapped["Skill"] = relationship(back_populates="diagnosis_history")
+    skill_type: Mapped["SkillType"] = relationship(back_populates="diagnosis_history")
+    child: Mapped["Child"] = relationship(back_populates="diagnosis_history")
 
     def __repr__(self) -> str:
         return f"{self.child_id} {self.skill} {self.mastered}"
@@ -114,8 +115,8 @@ class DiagnosisResult(Base):
     )
     age_assessment: Mapped[int] = mapped_column()
 
-    skill_type: Mapped["SkillType"] = relationship(back_populates="diagnosis_result")  # noqa: UP037
-    child: Mapped[Child] = relationship(back_populates="diagnosis_result")  # noqa: UP037
+    skill_type: Mapped["SkillType"] = relationship(back_populates="diagnosis_result")
+    child: Mapped[Child] = relationship(back_populates="diagnosis_result")
 
     def __repr__(self) -> str:
         return f"{self.child_id} {self.skill_types_id} {self.age_assessment}"
