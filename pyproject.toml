@@ -19,8 +19,11 @@ dev = [
 ]
 
 [tool.ruff]
-select = ["I", "UP", "B", "A"]
 include = ["src/**/*.py"]
+
+[tool.ruff.lint]
+select = ["I", "UP", "B", "A"]
+
 
 [tool.mypy]
 python_version = "3.12"
