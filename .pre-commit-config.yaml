@@ -1,8 +1,12 @@
+# exlude: src/database/migrations/versions/*.py
+
+
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.3.0
     hooks:
       - id: ruff
+        exclude: src/database/migrations/versions/
         args: ["--fix"]
       - id: ruff-format
 
