@@ -6,7 +6,9 @@ requires-python = ">=3.12"
 dependencies = [
     "alembic>=1.14.1",
     "fastapi[standard]>=0.115.8",
-    "psycopg2>=2.9.10",
+    "mypy>=1.15.0",
+    "psycopg2-binary>=2.9.10",
+    "pydantic>=2.10.6",
     "pydantic-settings>=2.8.0",
     "sqlalchemy>=2.0.38",
 ]
@@ -19,3 +21,13 @@ dev = [
 [tool.ruff]
 select = ["I", "UP", "B", "A"]
 include = ["src/**/*.py"]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+strict = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+show_error_codes = true
+plugins = "pydantic.mypy"
+explicit_package_bases = true

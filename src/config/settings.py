@@ -1,5 +1,7 @@
+from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+DOTENV = Path(__file__).resolve().parent.parent.parent / "db.env"
 
 class DBSettings(BaseSettings):
     postgres_user: str
@@ -9,12 +11,25 @@ class DBSettings(BaseSettings):
     postgres_port: int
     driver: str
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding='utf-8', extra='ignore')
+    model_config = SettingsConfigDict(env_file=DOTENV, env_file_encoding='utf-8', extra='ignore')
 
     @property
-    def db_url(self):
+    def db_url(self) -> str:
         return (f"{self.driver}://{self.postgres_user}:"
                 f"{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}")
 
 
-db_config = DBSettings()
+class AppConfig(BaseSettings):
+    """Application settings configuration."""
+
+    db: DBSettings = DBSettings()
+
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+    )
+
+
+
+
+
+app_config = AppConfig()

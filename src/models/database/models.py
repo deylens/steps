@@ -18,7 +18,7 @@ class User(Base):
 
     children: Mapped[list["Child"]] = relationship( back_populates='user')
 
-    def __repr__(self):
+    def __repr__(self)  -> str:
         return f"User <{self.telegram_id}>"
 
 
@@ -34,7 +34,7 @@ class Child(Base):
     diagnosis_history: Mapped[list["DiagnosisHistory"]] = relationship(back_populates='child')
     diagnosis_result: Mapped[list["DiagnosisResult"]] = relationship(back_populates='child')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'<{self.name} {self.birth_date}>'
 
 
@@ -48,7 +48,7 @@ class SkillType(Base):
     diagnosis_result: Mapped[list["DiagnosisResult"]] = relationship(back_populates='skill_type')
     diagnosis_history: Mapped[list["DiagnosisHistory"]] = relationship(back_populates='skill_type')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.name}"
 
 
@@ -67,7 +67,7 @@ class Skill(Base):
     skill_type: Mapped["SkillType"] = relationship(back_populates='skill')
     diagnosis_history: Mapped[list["DiagnosisHistory"]] = relationship(back_populates='skill')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.name}"
 
 
@@ -85,7 +85,7 @@ class DiagnosisHistory(Base):
     skill_type: Mapped["SkillType"] = relationship(back_populates='diagnosis_history')
     child: Mapped["Child"] = relationship(back_populates='diagnosis_history')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.child_id} {self.skill} {self.mastered}"
 
 
@@ -101,5 +101,5 @@ class DiagnosisResult(Base):
     skill_type: Mapped["SkillType"] = relationship(back_populates='diagnosis_result')
     child: Mapped["Child"] = relationship(back_populates='diagnosis_result')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.child_id} {self.skill_types_id} {self.age_assessment}"
