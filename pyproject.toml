@@ -20,6 +20,7 @@ dev = [
 
 [tool.ruff]
 include = ["src/**/*.py"]
+extend-exclude = ["src/database/migrations/*.py"]
 
 [tool.ruff.lint]
 select = ["I", "UP", "B", "A"]
