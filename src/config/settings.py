@@ -1,8 +1,4 @@
-from pathlib import Path
-
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
-DOTENV = Path(__file__).resolve().parent.parent.parent / "db.env"
 
 
 class DBSettings(BaseSettings):
@@ -16,7 +12,7 @@ class DBSettings(BaseSettings):
     driver: str
 
     model_config = SettingsConfigDict(
-        env_file=DOTENV, env_file_encoding="utf-8", extra="ignore"
+        env_file="db.env", env_file_encoding="utf-8", extra="ignore"
     )
 
     @property
@@ -33,7 +29,7 @@ class AppConfig(BaseSettings):
     db: DBSettings = DBSettings()
 
     model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+        env_file="db.env", env_file_encoding="utf-8", extra="ignore"
     )
 
 
