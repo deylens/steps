@@ -17,6 +17,12 @@ class DBSettings(BaseSettings):
 
     @property
     def db_url(self) -> str:
+        """
+        Constructs the database URL from the provided settings.
+
+        Returns:
+            str: The database URL.
+        """
         return (
             f"{self.driver}://{self.postgres_user}:"
             f"{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"

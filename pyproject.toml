@@ -10,6 +10,7 @@ dependencies = [
     "psycopg2-binary>=2.9.10",
     "pydantic>=2.10.6",
     "pydantic-settings>=2.8.0",
+    "pytest>=8.3.5",
     "sqlalchemy>=2.0.38",
 ]
 
@@ -35,3 +36,19 @@ check_untyped_defs = true
 show_error_codes = true
 plugins = "pydantic.mypy"
 explicit_package_bases = true
+no_implicit_optional = false
+disallow_any_generics = false
+disallow_untyped_decorators = false
+disallow_any_unimported = false
+
+[tool.pytest.ini_options]
+minversion = "8.3.5"
+addopts = "-ra -q"
+pythonpath = ["."]
+testpaths = [
+    "src/tests",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::UserWarning",
+]
