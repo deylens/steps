@@ -20,7 +20,7 @@ def user_repository(db_session: Session) -> UserRepository:
     return UserRepository(db_session)
 
 
-def test_get_user_by_telegram_id(user_repository: UserRepository):
+def test_get_user_by_telegram_id(user_repository: UserRepository) -> None:
     """
     Test the get_user_by_telegram_id method of UserRepository.
 
@@ -36,7 +36,7 @@ def test_get_user_by_telegram_id(user_repository: UserRepository):
     assert user.telegram_id == telegram_id
 
 
-def test_get_user_by_telegram_id_not_found(user_repository: UserRepository):
+def test_get_user_by_telegram_id_not_found(user_repository: UserRepository) -> None:
     """
     Test the get_user_by_telegram_id method of UserRepository when the user
     is not found.
