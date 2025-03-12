@@ -12,7 +12,7 @@ class DBSettings(BaseSettings):
     driver: str
 
     model_config = SettingsConfigDict(
-        env_file="db.env", env_file_encoding="utf-8", extra="ignore"
+        env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
 
     @property
@@ -35,7 +35,7 @@ class AppConfig(BaseSettings):
     db: DBSettings = DBSettings()
 
     model_config = SettingsConfigDict(
-        env_file="db.env", env_file_encoding="utf-8", extra="ignore"
+        env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
 
 
