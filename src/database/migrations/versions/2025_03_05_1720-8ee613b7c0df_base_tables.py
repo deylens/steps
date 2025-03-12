@@ -1,7 +1,7 @@
 """Base tables
 
 Revision ID: 8ee613b7c0df
-Revises: 
+Revises:
 Create Date: 2025-03-05 17:20:33.246363
 
 """

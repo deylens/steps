@@ -1,6 +1,6 @@
 from datetime import date
 
-from src.models.database.models import (
+from models.database.models import (
     Base,
     Child,
     DiagnosisHistory,

@@ -22,7 +22,7 @@ def user_service(db_session: Session) -> UserService:
     return UserService(user_repository)
 
 
-def test_get_user_by_telegram_id(user_service: UserService):
+def test_get_user_by_telegram_id(user_service: UserService) -> None:
     """
     Test the get_user_by_telegram_id method of UserService.
 
@@ -38,7 +38,7 @@ def test_get_user_by_telegram_id(user_service: UserService):
     assert user.telegram_id == telegram_id
 
 
-def test_get_user_by_telegram_id_not_found(user_service: UserService):
+def test_get_user_by_telegram_id_not_found(user_service: UserService) -> None:
     """
     Test the get_user_by_telegram_id method of UserService when the user
     is not found.

@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy.sql.elements import ColumnElement
 
 from src.models.database.models import User as UserSchema
@@ -9,7 +11,7 @@ class UserRepository(BaseRepository):
     _schema = UserSchema
     _model = User
 
-    def get_by_telegram_id(self, telegram_id: int) -> User:
+    def get_by_telegram_id(self, telegram_id: int) -> User | None:
         """
         Retrieves a user by their telegram_id.
 

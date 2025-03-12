@@ -27,7 +27,7 @@ def db_session() -> Generator[Session]:
 
 
 @pytest.fixture(scope="function", autouse=True)
-def setup_and_teardown_db(db_session: Session):
+def setup_and_teardown_db(db_session: Session) -> Generator:
     """
     Fixture that sets up and tears down the database for each test function.
 

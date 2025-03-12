@@ -1,3 +1,5 @@
+from typing import Any
+
 from sqlalchemy.orm import Query, Session
 from sqlalchemy.sql import text
 from sqlalchemy.sql.elements import BinaryExpression
@@ -12,8 +14,8 @@ class BaseRepository:
     should be written in the child repository.
     """
 
-    _schema: type = None  # SQLAlchemy model
-    _model: type = None  # Pydantic model
+    _schema: type | None = None  # SQLAlchemy model
+    _model: type | None = None  # Pydantic model
 
     def __init__(self, db: Session) -> None:
         """Instantiate the repository with a db session.
@@ -21,9 +23,9 @@ class BaseRepository:
         Args:
             db: A sqlalchemy.orm.session.Session object.
         """
-        self._db = db
+        self._db: Session = db
 
-    def get(self, entity_id: int):
+    def get(self, entity_id: int) -> Any:
         """Return a _schema by its primary key id.
 
         Args:
@@ -34,15 +36,15 @@ class BaseRepository:
         """
         return self._db.query(self._schema).get(entity_id)
 
-    def all(self) -> list:
+    def all(self) -> list[Any]:
         """Return all _schemas.
 
         Returns:
             A list of _schema instances.
         """
-        return self._db.query(self._schema).all()
+        return self._db.query(self._schema).all()  # type: ignore
 
-    def add(self, entity) -> None:
+    def add(self, entity: type) -> None:
         """Add an entity to the current session.
 
         Args:
@@ -76,7 +78,7 @@ class BaseRepository:
         Returns:
             A sqlalchemy.orm.query.Query object.
         """
-        query = self._db.query(self._schema)
+        query: Query = self._db.query(self._schema)
 
         if filters:
             for query_filter in filters:
