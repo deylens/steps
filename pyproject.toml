@@ -8,6 +8,7 @@ dependencies = [
     "fastapi[standard]>=0.115.8",
     "psycopg2>=2.9.10",
     "pydantic-settings>=2.8.0",
+    "pytest>=8.3.5",
     "sqlalchemy>=2.0.38",
 ]
 
@@ -17,5 +18,8 @@ dev = [
 ]
 
 [tool.ruff]
-select = ["I", "UP", "B", "A"]
 include = ["src/**/*.py"]
+extend-exclude = ["src/database/migrations/*.py"]
+
+[tool.ruff.lint]
+select = ["I", "UP", "B", "A"]

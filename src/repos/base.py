@@ -1,3 +1,4 @@
+from sqlalchemy.dialects.postgresql import insert as psql_insert
 from sqlalchemy.orm import Query, Session
 from sqlalchemy.sql import text
 from sqlalchemy.sql.elements import BinaryExpression
@@ -96,3 +97,51 @@ class BaseRepository:
             query = query.offset((page - 1) * size)
 
         return query
+
+    def _query_schema(
+        self,
+        schema: type = None,
+        filters: list[BinaryExpression] = None,
+        joins: list = None,
+        order_by: str = None,
+        order_type: str = None,
+        size: int = 50,
+        page: int = None,
+    ) -> Query:
+        """Query wrapper to pre-process for given arguments.
+
+        Args:
+            schema: The schema to query.
+            filters: A list of filters for the query.
+            joins: A list of joins for the query.
+            order_by: Set an order field for the returned items.
+            order_type: Define the order type for the returned items.
+            size: Limits the amount of items returned. Defaults to 50.
+            page: Page to start returning items from.
+
+        Returns:
+            A sqlalchemy.orm.query.Query object.
+        """
+        query = self._db.query(schema)
+
+        if filters:
+            for query_filter in filters:
+                query = query.filter(query_filter)
+
+        if joins:
+            for join in joins:
+                query = query.join(join)
+
+        if order_by:
+            query = query.order_by(text(f"{order_by} {order_type or 'desc'}"))
+
+        if size:
+            query = query.limit(size)
+
+        if page:
+            query = query.offset((page - 1) * size)
+
+        return query
+
+    def flush(self) -> None:
+        self._db.flush()
