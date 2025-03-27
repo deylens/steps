@@ -12,6 +12,38 @@ class Base(DeclarativeBase):  # type: ignore
     pass
 
 
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True)
+
+    children: Mapped[list["Child"]] = relationship(back_populates="user")
+
+    def __repr__(self) -> str:
+        return f"User <{self.telegram_id}>"
+
+
+class Child(Base):
+    __tablename__ = "children"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    name: Mapped[str] = mapped_column(String(30), nullable=False)
+    birth_date: Mapped[date] = mapped_column(Date, nullable=False)
+
+    user: Mapped["User"] = relationship("User", back_populates="children")
+    diagnosis_history: Mapped[list["DiagnosisHistory"]] = relationship(
+        back_populates="child"
+    )
+    diagnosis_result: Mapped[list["DiagnosisResult"]] = relationship(
+        back_populates="child"
+    )
+
+    def __repr__(self) -> str:
+        return f"<{self.name} {self.birth_date}>"
+
+
 class SkillType(Base):
     __tablename__ = "skill_types"
 

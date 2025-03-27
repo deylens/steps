@@ -29,10 +29,25 @@ class DBSettings(BaseSettings):
         )
 
 
+class BotSettings(BaseSettings):
+    """Bots settings"""
+
+    token: str
+
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", extra="ignore", env_prefix="bot_"
+    )
+
+    @property
+    def get_token(self) -> str:
+        return f"{self.token}"
+
+
 class AppConfig(BaseSettings):
     """Application settings configuration."""
 
     db: DBSettings = DBSettings()
+    bot: BotSettings = BotSettings()
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
