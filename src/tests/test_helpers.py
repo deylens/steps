@@ -1,6 +1,7 @@
-from models.database.models import Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
+
+from src.models.database.models import Base
 
 
 def get_in_memory_database(tables: list = None) -> Session:
