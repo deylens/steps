@@ -2,16 +2,16 @@ from datetime import date
 
 from sqlalchemy.sql.elements import ColumnElement
 
-from src.models.database.models import Child as ChildSchema
-from src.models.domain.models import Child
-from src.repos.base import BaseRepository
+from models.database.models import Child as ChildSchema
+from models.domain.models import Child
+from repos.base import BaseRepository
 
 
 class ChildRepository(BaseRepository):
     _schema = ChildSchema
     _model = Child
 
-    def get_child(self, child_id: int) -> Child:
+    def get_child(self, child_id: int) -> Child | None:
         """
         Retrieves a child by their id.
 

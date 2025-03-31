@@ -1,15 +1,15 @@
 from sqlalchemy.sql.elements import ColumnElement
 
-from src.models.database.models import User as UserSchema
-from src.models.domain.models import User
-from src.repos.base import BaseRepository
+from models.database.models import User as UserSchema
+from models.domain.models import User
+from repos.base import BaseRepository
 
 
 class UserRepository(BaseRepository):
     _schema = UserSchema
     _model = User
 
-    def get_by_telegram_id(self, telegram_id: int) -> User:
+    def get_by_telegram_id(self, telegram_id: int) -> User | None:
         """
         Retrieves a user by their telegram_id.
 
@@ -23,7 +23,7 @@ class UserRepository(BaseRepository):
         user = self._query(filters=filters).first()
         return self._model.model_validate(user) if user else None
 
-    def get_user(self, user_id: int) -> User:
+    def get_user(self, user_id: int) -> User | None:
         """
         Retrieves a user by their id.
 

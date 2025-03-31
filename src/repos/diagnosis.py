@@ -2,10 +2,10 @@ import datetime
 
 from sqlalchemy.sql.elements import ColumnElement
 
-from src.models.database.models import DiagnosisHistory as DiagnosisHistorySchema
-from src.models.database.models import DiagnosisResult as DiagnosisSchema
-from src.models.domain.models import DiagnosisHistory, DiagnosisResult
-from src.repos.base import BaseRepository
+from models.database.models import DiagnosisHistory as DiagnosisHistorySchema
+from models.database.models import DiagnosisResult as DiagnosisSchema
+from models.domain.models import DiagnosisHistory, DiagnosisResult
+from repos.base import BaseRepository
 
 
 class DiagnosisRepository(BaseRepository):

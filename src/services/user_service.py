@@ -1,5 +1,5 @@
-from src.models.domain.models import User
-from src.repos.user import UserRepository
+from models.domain.models import User
+from repos.user import UserRepository
 
 
 class UserService:

@@ -1,9 +1,9 @@
 from sqlalchemy.sql.elements import ColumnElement
 
-from src.models.database.models import Skill as SkillSchema
-from src.models.database.models import SkillType as SkillTypeSchema
-from src.models.domain.models import Skill, SkillType
-from src.repos.base import BaseRepository
+from models.database.models import Skill as SkillSchema
+from models.database.models import SkillType as SkillTypeSchema
+from models.domain.models import Skill, SkillType
+from repos.base import BaseRepository
 
 
 class SkillRepository(BaseRepository):

@@ -1,4 +1,5 @@
-# type: ignore
+from typing import Any
+
 from sqlalchemy.dialects.postgresql import insert as psql_insert
 from sqlalchemy.orm import Query, Session
 from sqlalchemy.sql import text
@@ -14,8 +15,8 @@ class BaseRepository:
     should be written in the child repository.
     """
 
-    _schema: type = None  # SQLAlchemy model
-    _model: type = None  # Pydantic model
+    _schema: type | None = None  # SQLAlchemy model
+    _model: type | None = None  # Pydantic model
 
     def __init__(self, db: Session) -> None:
         """Instantiate the repository with a db session.
@@ -25,7 +26,7 @@ class BaseRepository:
         """
         self._db = db
 
-    def get(self, entity_id: int):
+    def get(self, entity_id: int) -> Any:
         """Return a _schema by its primary key id.
 
         Args:
@@ -36,15 +37,18 @@ class BaseRepository:
         """
         return self._db.query(self._schema).get(entity_id)
 
-    def all(self) -> list:
+    def all(self) -> list[Any]:
         """Return all _schemas.
 
         Returns:
             A list of _schema instances.
         """
-        return self._db.query(self._schema).all()
+        if self._schema is None:
+            raise ValueError("_schema not defined")
+        else:
+            return self._db.query(self._schema).all()
 
-    def add(self, entity) -> None:
+    def add(self, entity: Any) -> None:
         """Add an entity to the current session.
 
         Args:

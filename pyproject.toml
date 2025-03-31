@@ -43,7 +43,13 @@ no_implicit_optional = false
 disallow_any_generics = false
 disallow_untyped_decorators = false
 disallow_any_unimported = false
-exclude = ['src/']
+disallow_any_decorated = false
+disallow_any_expr = false
+disallow_subclassing_any = true
+disable_error_code = [
+    "misc",         # ignore Class cannot subclass "BaseRepository" (has type "Any")
+    "no-any-return" # ignore Returning Any from function declared to return "..."
+]
 
 [tool.pytest.ini_options]
 minversion = "8.3.5"

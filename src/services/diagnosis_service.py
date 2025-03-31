@@ -33,7 +33,10 @@ class DiagnosisService:
     def start_diagnosis(self, child_id: int) -> list[Skill]:
         """Retrieves a list of skills by the age of the child."""
         child = self.child_repository.get_child(child_id)
-        return self.skill_repository.get_skills_by_age(child.age_months)
+        if child:
+            return self.skill_repository.get_skills_by_age(child.age_months)
+        else:
+            raise ValueError("Child not found")
 
     def save_diagnosis(self, child_id: int, result: dict) -> list[DiagnosisResult]:
         """Saves the results of the diagnosis."""
@@ -78,6 +81,8 @@ class DiagnosisService:
     def finish_diagnosis(self, child_id: int) -> dict:
         """Retrieves the results of the diagnosis."""
         child = self.child_repository.get_child(child_id)
+        if not child:
+            raise ValueError("Child not found")
         skill_types = self.skill_repository.get_skill_types()
         skill_types_id_name = {skill.id: skill.name for skill in skill_types}
         diagnosis_results = self._get_diagnosis_results(child_id)

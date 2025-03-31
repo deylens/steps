@@ -8,7 +8,7 @@ class ChildService:
     def __init__(self, child_repository: ChildRepository):
         self.child_repository = child_repository
 
-    def get_child(self, child_id: int) -> Child:
+    def get_child(self, child_id: int) -> Child | None:
         """Retrieves a child by their ID."""
         return self.child_repository.get_child(child_id)
 
