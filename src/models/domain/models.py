@@ -28,8 +28,8 @@ class Child(Base):
     birth_date: date
     diagnosis_history: list["DiagnosisHistory"] = []
 
-    @property
     @computed_field
+    @property
     def age_months(self) -> int:
         today = date.today()
         years_diff = today.year - self.birth_date.year

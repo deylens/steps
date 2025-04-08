@@ -74,7 +74,7 @@ def get_diagnosis_service() -> DiagnosisService:
     diagnosis_repository = get_diagnosis_repository()
     child_repository = get_child_repository()
     skill_repository = get_skill_repository()
-    return SkillRepository(diagnosis_repository, child_repository, skill_repository)
+    return DiagnosisService(diagnosis_repository, child_repository, skill_repository)
 
 
 def get_recommendation_service() -> RecommendationService:

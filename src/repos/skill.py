@@ -1,3 +1,4 @@
+from sqlalchemy import and_, or_
 from sqlalchemy.sql.elements import ColumnElement
 
 from models.database.models import Skill as SkillSchema
@@ -22,8 +23,10 @@ class SkillRepository(BaseRepository):
         Returns:
             list[Skill]: The list of skills with the specified age, or empty list if not found.
         """
-        filters: list[ColumnElement] = [self._schema.age_actual <= age]
-        skills = self._query(filters=filters).all()
+        filters: list[ColumnElement] = [
+            and_(self._schema.age_start <= age, self._schema.age_end >= age)
+        ]
+        skills = self._query(filters=filters).limit(200).all()
         return [self._model.model_validate(skill) for skill in skills]
 
     def get_skill(self, skill_id: int) -> Skill:

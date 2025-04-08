@@ -47,7 +47,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
             username = update.effective_user.full_name
             await message.reply_text(f"Привествуем,{username}")
             await message.reply_text(TEXT["greetings"])
-            print(context.user_data["user"].id)
         else:
             user = service.register_user(telegram_id=telegram_id)
             context.user_data["user"] = user
@@ -123,7 +122,7 @@ async def handle_choice_child(
         buttons = [
             InlineKeyboardButton(
                 text=f"{child.name} ({child.birth_date})",
-                callback_data=f"child_selected;{child.id}",
+                callback_data=child.id,
             )
             for child in children
         ]
@@ -132,10 +131,10 @@ async def handle_choice_child(
             text="Выберите ребенка из списка:",
             reply_markup=InlineKeyboardMarkup([buttons]),
         )
-        return States.QUESTIONS
+        return States.CHOICE_CHILD
 
-    elif choice.startswith("child_selected;"):
-        child_id = int(choice.split(";")[1])
+    elif type(choice) == int:
+        child_id = choice
         context.user_data["current_child"] = child_id
         context.user_data["current_questions"] = 0
 
@@ -198,13 +197,15 @@ async def ask_question(update: Update, context: ContextTypes.DEFAULT_TYPE) -> An
 
     message = await get_message(update)
     current_question = context.user_data.get("current_questions", 0)
+    service = get_diagnosis_service()
+    questions = service.start_diagnosis(context.user_data["current_child"])
 
-    if current_question < len(DATA["questions"]):
-        skill = DATA["questions"][current_question]
+    if current_question < len(questions):
+        skill = questions[current_question]
 
         await message.reply_text(
-            text=f"{skill['name']}: {skill['creteria']}",
-            reply_markup=build_keyboard(["Освоил", "Не освоил"]),
+            text=f" skill {skill.criteria}, skill_id {skill.id} skill_type {skill.skill_type_id}, age_start {skill.age_start} age {skill.age_actual}",
+            reply_markup=build_keyboard(["Выполнил", "Не выполнил"]),
         )
 
         return States.QUESTIONS
@@ -217,16 +218,22 @@ async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> A
     Обрабатывает ответ пользователя на вопрос.
 
     """
+    answer_data = {"Выполнил": True, "Не выполнил": False}
     query = update.callback_query
     await query.answer()
     user_answer = query.data
-
-    if user_answer in ["Освоил", "Не освоил"]:
-        current_question = context.user_data.get("current_questions", 0)
-        update_skill(DATA, current_question, user_answer)
-        context.user_data["current_questions"] += 1
-        return await ask_question(update, context)
-
+    service = get_diagnosis_service()
+    questions = context.user_data["questions"]
+    child_id = context.user_data["current_child"]
+    current_question = context.user_data.get("current_questions", 0)
+    answer = answer_data[user_answer]
+    service.submit_question(
+        child_id=child_id,
+        skill_id=questions[current_question].id,
+        skill_type=questions[current_question].skill_type_id,
+        answer=answer,
+    )
+    context.user_data["current_questions"] += 1
     return await ask_question(update, context)
 
 
