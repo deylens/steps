@@ -5,11 +5,20 @@ from data import DATA, TEXT, States
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
 from utils import (
+    birth_date,
     error_message,
     get_child_data,
     get_message,
     get_recommendation,
     update_skill,
+)
+
+from src.dependencies import (
+    get_child_service,
+    get_diagnosis_service,
+    get_recommendation_service,
+    get_user_repository,
+    get_user_service,
 )
 
 
@@ -20,13 +29,31 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     """
     try:
         message = update.message or update.callback_query.message
-        context.user_data.update({"current_questions": 0, "is_anonymous": False})
-        if DATA["id_user"] == None or "id_user" not in DATA:
-            DATA["id_user"] = update.effective_user.id
-            await message.reply_text(TEXT["greetings"])
-        else:
+        service = get_user_service()
+        context.user_data.update(
+            {
+                "user": None,
+                "current_questions": 0,
+                "is_anonymous": False,
+                "children": None,
+                "current_child": None,
+            }
+        )
+
+        telegram_id = update.effective_user.id
+        user = service.get_user_by_telegram_id(telegram_id=telegram_id)
+        context.user_data["user"] = user
+        if user:
             username = update.effective_user.full_name
-            await message.reply_text(f"Hello,{username}")
+            await message.reply_text(f"Привествуем,{username}")
+            await message.reply_text(TEXT["greetings"])
+            print(context.user_data["user"].id)
+        else:
+            user = service.register_user(telegram_id=telegram_id)
+            context.user_data["user"] = user
+            await message.reply_text(
+                f"{update.effective_user.full_name}, Вы зарегистрированы"
+            )
 
         menu_keyboard = ["Инструкция", "Диагностика", "Анонимно"]
 
@@ -65,6 +92,102 @@ async def handle_menu_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
         context.user_data["is_anonymous"] = True
         await query.message.reply_text(f"{TEXT['anonymous']}")
         return await anonymous(update, context)
+
+
+async def choice_child(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
+    query = update.callback_query
+    await query.answer()
+    keyboard = ["Выбрать", "Добавить"]
+    await query.edit_message_text(
+        text="Выберете или добавьте данные ребенка:",
+        reply_markup=build_keyboard(keyboard),
+    )
+
+    return States.CHOICE_CHILD
+
+
+async def handle_choice_child(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> Any:
+    query = update.callback_query
+    service = get_child_service()
+    await query.answer()
+    choice = query.data
+
+    if choice == "Добавить":
+        return await handle_add_child(update, context)
+
+    elif choice == "Выбрать":
+        children = service.get_children(context.user_data["user"].id)
+
+        buttons = [
+            InlineKeyboardButton(
+                text=f"{child.name} ({child.birth_date})",
+                callback_data=f"child_selected;{child.id}",
+            )
+            for child in children
+        ]
+
+        await query.edit_message_text(
+            text="Выберите ребенка из списка:",
+            reply_markup=InlineKeyboardMarkup([buttons]),
+        )
+        return States.QUESTIONS
+
+    elif choice.startswith("child_selected;"):
+        child_id = int(choice.split(";")[1])
+        context.user_data["current_child"] = child_id
+        context.user_data["current_questions"] = 0
+
+        return await ask_question(update, context)
+
+
+async def handle_add_child(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
+    context.user_data["child"] = {}
+    query = update.callback_query
+    await query.edit_message_text(text="Введите имя ребенка")
+
+    return States.ADD_NAME
+
+
+async def handle_add_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
+    user_input = update.message.text
+    context.user_data["child"]["name"] = user_input
+    await update.message.reply_text(
+        "Введите дату рождения ребенка в формате ДД.ММ.ГГГГ"
+    )
+
+    return States.ADD_DATE
+
+
+async def handle_add_date(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
+    service = get_child_service()
+    user_input = update.message.text
+    context.user_data["child"]["date"] = birth_date(user_input)
+    service.add_child(
+        user_id=context.user_data["user"].id,
+        name=context.user_data["child"]["name"],
+        birth_date=context.user_data["child"]["date"],
+    )
+
+    if update.message:
+        await update.message.reply_text(
+            f"Ребенок {context.user_data['child']['name']} с датой {context.user_data['child']['date']} добавлен"
+        )
+    else:
+        await update.callback_query.message.reply_text(
+            f"Ребенок {context.user_data['child']['name']} с датой {context.user_data['child']['date']} добавлен"
+        )
+
+    context.user_data["current_questions"] = 0
+    context.user_data["child"] = {}
+
+    keyboard = ["Выбрать", "Добавить"]
+    await update.message.reply_text(
+        text="Выберите действие:", reply_markup=build_keyboard(keyboard)
+    )
+
+    return States.CHOICE_CHILD
 
 
 async def ask_question(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
@@ -124,85 +247,6 @@ async def instruction(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any
         return States.START
 
     return States.INSTRUCTION
-
-
-async def choice_child(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
-    query = update.callback_query
-    await query.answer()
-    keyboard = ["Выбрать", "Добавить"]
-    await query.edit_message_text(
-        text="Выберете или добавьте данные ребенка:",
-        reply_markup=build_keyboard(keyboard),
-    )
-
-    return States.CHOICE_CHILD
-
-
-async def handle_choice_child(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> Any:
-    query = update.callback_query
-    await query.answer()
-    choice = query.data
-
-    if choice == "Добавить":
-        return await handle_add_child(update, context)
-
-    elif choice == "Выбрать":
-        keyboard = get_child_data(DATA)
-        await query.edit_message_text(
-            text="Выберете ребенка из списка:",
-            reply_markup=build_keyboard(keyboard, callback_data="Диагностика"),
-        )
-        context.user_data["current_questions"] = 0
-
-        return States.QUESTIONS
-
-
-async def handle_add_child(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
-    context.user_data["child"] = {}
-    query = update.callback_query
-    await query.edit_message_text(text="Введите имя ребенка")
-
-    return States.ADD_NAME
-
-
-async def handle_add_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
-    user_input = update.message.text
-    context.user_data["child"]["name"] = user_input
-    await update.message.reply_text(
-        "Введите дату рождения ребенка в формате ДД.ММ.ГГГГ"
-    )
-
-    return States.ADD_DATE
-
-
-async def handle_add_date(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
-    user_input = update.message.text
-    context.user_data["child"]["date"] = user_input
-
-    if update.message:
-        await update.message.reply_text(
-            f"Ребенок {context.user_data['child']['name']} с датой {context.user_data['child']['date']} добавлен"
-        )
-    else:
-        await update.callback_query.message.reply_text(
-            f"Ребенок {context.user_data['child']['name']} с датой {context.user_data['child']['date']} добавлен"
-        )
-
-    if "child" not in DATA:
-        DATA["child"] = []
-    DATA["child"].append(context.user_data["child"])
-
-    context.user_data["current_questions"] = 0
-    context.user_data["child"] = {}
-
-    keyboard = ["Выбрать", "Добавить"]
-    await update.message.reply_text(
-        text="Выберите действие:", reply_markup=build_keyboard(keyboard)
-    )
-
-    return States.CHOICE_CHILD
 
 
 async def result(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
@@ -302,22 +346,36 @@ async def handle_age_text(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     return await ask_question(update, context)
 
 
-def build_keyboard(current_list: list, callback_data=None) -> InlineKeyboardMarkup:  # type: ignore
-    """Создает клавиатуру с вариантами ответов."""
-    if callback_data:
-        return InlineKeyboardMarkup.from_row(
-            [
-                InlineKeyboardButton(current_list[i], callback_data=callback_data)
-                for i in range(len(current_list))
-            ]
-        )
+def build_keyboard(  # type: ignore
+    current_list: list[str], callback_data=None, **kwargs: Any
+) -> InlineKeyboardMarkup:
+    """Создает клавиатуру с вариантами ответов.
 
-    return InlineKeyboardMarkup.from_row(
-        [
-            InlineKeyboardButton(current_list[i], callback_data=current_list[i])
-            for i in range(len(current_list))
-        ]
-    )
+    Args:
+        current_list: Список текстов кнопок или кортежей (текст, значение)
+        callback_data: Базовый callback_data (если не используется список кортежей)
+        **kwargs: Дополнительные параметры (будут добавлены в callback_data через ";")
+    """
+    buttons = []
+
+    for item in current_list:
+        # Определяем текст кнопки и значение для callback_data
+        if isinstance(item, tuple) and len(item) == 2:
+            text, value = item
+        else:
+            text = value = item
+
+        # Формируем основной callback_data
+        cb_data = str(value) if callback_data is None else callback_data
+
+        # Добавляем kwargs если они есть
+        if kwargs:
+            kwargs_str = ";".join(f"{k}={v}" for k, v in kwargs.items())
+            cb_data = f"{cb_data};{kwargs_str}"
+
+        buttons.append(InlineKeyboardButton(text, callback_data=cb_data))
+
+    return InlineKeyboardMarkup.from_row(buttons)
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

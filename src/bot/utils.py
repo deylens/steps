@@ -1,12 +1,17 @@
+from datetime import date
+
 from telegram import Update
 
 
 def update_skill(data: dict, current_question: int, approve: str) -> dict:
     """
     Сохранение ответов в промежуточном словаре
-    Args: data: список с вопросами, current_questions:  текст вопроса, approve: ответ вопроса
+    Args:
+        data: список с вопросами,
+        current_questions:  текст вопроса, approve: ответ вопроса
 
-    Return: data: промежуточный список с ответами на вопрос
+    Return:
+        data: промежуточный список с ответами на вопрос
     """
 
     if approve == "Освоил":
@@ -19,15 +24,17 @@ def update_skill(data: dict, current_question: int, approve: str) -> dict:
 def get_child_data(data: dict) -> list:
     """
     Получение списка для клавиатуры бота
-    Args: список детей пользователя
+    Args:
+        data : список детей пользователя
 
-    return: список детей для клавиатуры бота
+    return:
+        data: список детей для клавиатуры бота
 
     """
     child_list = []
-    for i in range(len(data["child"])):
-        name = data["child"][i]["name"]
-        date = data["child"][i]["date"]
+    for child in data:
+        name = child.name
+        date = child.birth_date
         current_child = f"{name} {date}"
         child_list.append(current_child)
     return child_list
@@ -36,9 +43,11 @@ def get_child_data(data: dict) -> list:
 def get_recommendation(data: dict) -> list:
     """
     Получение рекомендаций в зависимости от ответов
-    Args: промежуточный список с вопросами и ответами
+    Args:
+        data: промежуточный список с вопросами и ответами
 
-    Return: список словарей, с ответами False
+    Return:
+        data: список словарей, с ответами False
     """
     _recom_list = []
 
@@ -76,3 +85,9 @@ async def error_message(update: Update) -> Update:
             await update.message.reply_text("Произошла ошибка, попробуйте еще раз")
     except:
         pass
+
+
+def birth_date(user_date: str) -> date:
+    input_data = "-".join(user_date.split(".")[::-1])
+    output_data = date.fromisoformat(input_data)
+    return output_data

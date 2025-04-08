@@ -3,6 +3,12 @@ from collections.abc import Generator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
+from repos.child import ChildRepository
+from repos.diagnosis import DiagnosisRepository
+from repos.skill import SkillRepository
+from services.child_service import ChildService
+from services.diagnosis_service import DiagnosisService
+from services.recommendation_service import RecommendationService
 from src.config.settings import app_config
 from src.repos.user import UserRepository
 from src.services.user_service import UserService
@@ -38,3 +44,44 @@ def get_user_service() -> UserService:
     """Provides an instance of UserService."""
     user_repository = get_user_repository()
     return UserService(user_repository)
+
+
+def get_child_repository() -> ChildRepository:
+    """Provides an instance of ChildRepository."""
+    db = next(get_db())
+    return ChildRepository(db)
+
+
+def get_child_service() -> ChildService:
+    """Provides an instance of ChildService."""
+    child_repository = get_child_repository()
+    return ChildService(child_repository)
+
+
+def get_diagnosis_repository() -> DiagnosisRepository:
+    """Provides an instance of DiagnosisRepository."""
+    db = next(get_db())
+    return DiagnosisRepository(db)
+
+
+def get_skill_repository() -> SkillRepository:
+    db = next(get_db())
+    return SkillRepository(db)
+
+
+def get_diagnosis_service() -> DiagnosisService:
+    """Provides an instance of DiagnosisService."""
+    diagnosis_repository = get_diagnosis_repository()
+    child_repository = get_child_repository()
+    skill_repository = get_skill_repository()
+    return SkillRepository(diagnosis_repository, child_repository, skill_repository)
+
+
+def get_recommendation_service() -> RecommendationService:
+    """Provides an instance of RecommendationService."""
+    diagnosis_repository = get_diagnosis_repository()
+    child_repository = get_child_repository()
+    skill_repository = get_skill_repository()
+    return RecommendationService(
+        child_repository, skill_repository, diagnosis_repository
+    )

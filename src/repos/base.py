@@ -26,6 +26,10 @@ class BaseRepository:
         """
         self._db = db
 
+    @property
+    def session(self) -> Session:
+        return self._db
+
     def get(self, entity_id: int) -> Any:
         """Return a _schema by its primary key id.
 

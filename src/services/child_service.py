@@ -18,4 +18,6 @@ class ChildService:
 
     def add_child(self, user_id: int, name: str, birth_date: date) -> Child:
         """Creates a child by their parent's ID, name and birth_date."""
-        return self.child_repository.create_child(user_id, name, birth_date)
+        child = self.child_repository.create_child(user_id, name, birth_date)
+        self.child_repository.commit()
+        return child
