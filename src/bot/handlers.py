@@ -2,7 +2,7 @@ import logging
 from typing import Any
 
 from data import DATA, TEXT, States
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, error
 from telegram.ext import ContextTypes
 from utils import (
     birth_date,
@@ -73,7 +73,6 @@ async def handle_menu_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
     Обработка выбора пользователя в меню.
 
     """
-
     query = update.callback_query
     await query.answer()
     choice = query.data
@@ -194,23 +193,28 @@ async def ask_question(update: Update, context: ContextTypes.DEFAULT_TYPE) -> An
     Вопросы из списка SKILL.
 
     """
+    try:
+        message = await get_message(update)
+        current_question = context.user_data.get("current_questions", 0)
+        service = get_diagnosis_service()
+        questions = service.start_diagnosis(context.user_data["current_child"])
+        context.user_data["questions"] = questions
 
-    message = await get_message(update)
-    current_question = context.user_data.get("current_questions", 0)
-    service = get_diagnosis_service()
-    questions = service.start_diagnosis(context.user_data["current_child"])
+        if current_question < len(questions):
+            skill = questions[current_question]
+            print(skill)
+            await message.reply_text(
+                text=f" skill {skill.criteria}, skill_id {skill.id} skill_type {skill.skill_type_id}, age_start {skill.age_start} age {skill.age_actual}",
+                reply_markup=build_keyboard(["Выполнил", "Не выполнил"]),
+            )
 
-    if current_question < len(questions):
-        skill = questions[current_question]
-
-        await message.reply_text(
-            text=f" skill {skill.criteria}, skill_id {skill.id} skill_type {skill.skill_type_id}, age_start {skill.age_start} age {skill.age_actual}",
-            reply_markup=build_keyboard(["Выполнил", "Не выполнил"]),
-        )
-
-        return States.QUESTIONS
-    else:
-        return await result(update, context)
+            return States.QUESTIONS
+        else:
+            return await result(update, context)
+    except Exception as e:
+        logging.info(f"error {e}")
+        await message.reply_text(f"Произошла ошибка, возвращаюсь к начальной странице")
+        return await start(update, context)
 
 
 async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
@@ -220,7 +224,11 @@ async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> A
     """
     answer_data = {"Выполнил": True, "Не выполнил": False}
     query = update.callback_query
-    await query.answer()
+    try:
+        await query.answer()
+    except error.BadRequest as e:
+        if "Query is too old" in str(e):
+            logging.warning(f"Expire callback: {e}")
     user_answer = query.data
     service = get_diagnosis_service()
     questions = context.user_data["questions"]
@@ -258,30 +266,29 @@ async def instruction(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any
 
 async def result(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     message = await get_message(update)
+    service = get_diagnosis_service()
+    child_id = context.user_data["current_child"]
+    result = service._get_diagnosis_results(child_id=child_id)
+    service.save_diagnosis(child_id=child_id, result=result)
+    finish_result = service.finish_diagnosis(child_id=child_id)
+    logging.info(f"{finish_result}")
     if "current_recommend_index" not in context.user_data:
         context.user_data["current_recommend_index"] = 0
 
-    current_index = context.user_data["current_recommend_index"]
-    recommend = get_recommendation(DATA)
+    current_index = context.user_data.get("current_recommend_index", 0)
+    recommend = finish_result["skill_mastered"]
     keyboard = [
         InlineKeyboardButton("История", callback_data="history"),
         InlineKeyboardButton("Старт", callback_data="start"),
     ]
-
+    logging.info(recommend.items())
     if current_index == 0:
         await message.reply_text(text="Идёт подсчёт результата")
 
-    if len(recommend) == 0:
+    if current_index < len(recommend.items()):
+        item = list(recommend.items())[current_index]
         await message.reply_text(
-            "Психо-физическое развитие соответствует возрасту. Опрос завершен.",
-            reply_markup=InlineKeyboardMarkup.from_row(keyboard),
-        )
-        return States.RESULT
-
-    if current_index < len(recommend):
-        await message.reply_text(
-            f"{recommend[current_index]['name']}\n"
-            f"{recommend[current_index]['recommendation']}",
+            f"{item}",
             reply_markup=InlineKeyboardMarkup(
                 [[InlineKeyboardButton("Продолжить", callback_data="next")]]
             ),
@@ -363,6 +370,7 @@ def build_keyboard(  # type: ignore
         callback_data: Базовый callback_data (если не используется список кортежей)
         **kwargs: Дополнительные параметры (будут добавлены в callback_data через ";")
     """
+
     buttons = []
 
     for item in current_list:

@@ -30,7 +30,7 @@ async def main() -> None:
     """Запуск бота."""
     store_data = PersistenceInput(chat_data=True, user_data=True, bot_data=True)
     persistence = PicklePersistence(
-        filepath="databot", store_data=store_data, update_interval=5
+        filepath="src/bot/databot", store_data=store_data, update_interval=5
     )
     application = (
         Application.builder()
