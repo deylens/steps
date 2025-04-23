@@ -265,45 +265,59 @@ async def instruction(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any
 
 
 async def result(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
-    message = await get_message(update)
-    service = get_diagnosis_service()
-    child_id = context.user_data["current_child"]
-    result = service._get_diagnosis_results(child_id=child_id)
-    service.save_diagnosis(child_id=child_id, result=result)
-    finish_result = service.finish_diagnosis(child_id=child_id)
-    logging.info(f"{finish_result}")
-    if "current_recommend_index" not in context.user_data:
-        context.user_data["current_recommend_index"] = 0
+    try:
+        message = await get_message(update)
+        service = get_diagnosis_service()
+        child_id = context.user_data["current_child"]
+        if not child_id:
+            await message.reply_text("Ребенок не найден, вернёмся к началу")
+            return await start(update, context)
 
-    current_index = context.user_data.get("current_recommend_index", 0)
-    recommend = finish_result["skill_mastered"]
-    keyboard = [
-        InlineKeyboardButton("История", callback_data="history"),
-        InlineKeyboardButton("Старт", callback_data="start"),
-    ]
-    logging.info(recommend.items())
-    if current_index == 0:
-        await message.reply_text(text="Идёт подсчёт результата")
+        recommendations = get_recommendation_service().get_recommendations(child_id)
+        if not recommendations:
+            await message.reply_text("Рекомендации не найдены")
+            return States.RESULT
 
-    if current_index < len(recommend.items()):
-        item = list(recommend.items())[current_index]
-        await message.reply_text(
-            f"{item}",
-            reply_markup=InlineKeyboardMarkup(
-                [[InlineKeyboardButton("Продолжить", callback_data="next")]]
-            ),
-        )
-        context.user_data["current_recommend_index"] += 1
+        result = service._get_diagnosis_results(child_id=child_id)
+        service.save_diagnosis(child_id=child_id, result=result)
+        finish_result = service.finish_diagnosis(child_id=child_id)
+        logging.info(f"{finish_result}")
+        if "current_recommend_index" not in context.user_data:
+            context.user_data["current_recommend_index"] = 0
 
-    else:
-        await message.reply_text(
-            text=f"Опрос завершен. Спасибо!",
-            reply_markup=InlineKeyboardMarkup.from_row(keyboard),
-        )
-        context.user_data["current_recommend_index"] = 0
+        current_index = context.user_data.get("current_recommend_index", 0)
+        recommend = finish_result["skill_mastered"]
+        keyboard = [
+            InlineKeyboardButton("История", callback_data="history"),
+            InlineKeyboardButton("Старт", callback_data="start"),
+        ]
+
+        if current_index == 0:
+            await message.reply_text(text="Идёт подсчёт результата")
+
+        if current_index < len(recommend.items()):
+            item = list(recommend.items())[current_index]
+            await message.reply_text(
+                f"{item}",
+                reply_markup=InlineKeyboardMarkup(
+                    [[InlineKeyboardButton("Продолжить", callback_data="next")]]
+                ),
+            )
+            context.user_data["current_recommend_index"] += 1
+
+        else:
+            await message.reply_text(
+                text=f"Опрос завершен. Спасибо!",
+                reply_markup=InlineKeyboardMarkup.from_row(keyboard),
+            )
+            context.user_data["current_recommend_index"] = 0
+            return States.RESULT
+
         return States.RESULT
-
-    return States.RESULT
+    except Exception as e:
+        logging.error(f"Error in result is {e}")
+        await error_message(update)
+        return await start(update, context)
 
 
 async def handle_result(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
