@@ -1,10 +1,10 @@
 from sqlalchemy import and_, or_
 from sqlalchemy.sql.elements import ColumnElement
 
-from models.database.models import Skill as SkillSchema
-from models.database.models import SkillType as SkillTypeSchema
-from models.domain.models import Skill, SkillType
-from repos.base import BaseRepository
+from src.models.database.models import Skill as SkillSchema
+from src.models.database.models import SkillType as SkillTypeSchema
+from src.models.domain.models import Skill, SkillType
+from src.repos.base import BaseRepository
 
 
 class SkillRepository(BaseRepository):
@@ -29,7 +29,7 @@ class SkillRepository(BaseRepository):
         skills = self._query(filters=filters).limit(200).all()
         return [self._model.model_validate(skill) for skill in skills]
 
-    def get_skill(self, skill_id: int) -> Skill:
+    def get_skill(self, skill_id: int) -> Skill | None:
         """
         Retrieves a skill by its id.
 

@@ -1,8 +1,8 @@
 from sqlalchemy.sql.elements import ColumnElement
 
-from models.database.models import User as UserSchema
-from models.domain.models import User
-from repos.base import BaseRepository
+from src.models.database.models import User as UserSchema
+from src.models.domain.models import User
+from src.repos.base import BaseRepository
 
 
 class UserRepository(BaseRepository):

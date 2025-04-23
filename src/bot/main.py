@@ -2,7 +2,6 @@ import asyncio
 import logging
 import signal
 
-import handlers
 from data import States
 from telegram.ext import (
     Application,
@@ -15,6 +14,7 @@ from telegram.ext import (
     filters,
 )
 
+import src.bot.handlers as handlers
 from src.config import settings
 
 logging.basicConfig(

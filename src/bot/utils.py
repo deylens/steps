@@ -1,6 +1,16 @@
+import logging
+from collections.abc import Callable
 from datetime import date
+from functools import wraps
+from typing import Any
 
 from telegram import Update
+from telegram.ext import ContextTypes, ConversationHandler
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+)
 
 
 def update_skill(data: dict, current_question: int, approve: str) -> dict:
@@ -91,3 +101,33 @@ def birth_date(user_date: str) -> date:
     input_data = "-".join(user_date.split(".")[::-1])
     output_data = date.fromisoformat(input_data)
     return output_data
+
+
+def log_handler_errors(handler_func: Callable) -> Callable:
+    """
+    Декоратор для логирования ошибок в обработчиках python-telegram-bot.
+    Логирует:
+    - Начало выполнения обработчика
+    - Успешное завершение
+    - Возникшие ошибки
+    """
+
+    @wraps(handler_func)
+    async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
+        handler_name = handler_func.__name__
+
+        try:
+            logger.info(f"Обработчик '{handler_name}' начал выполнение")
+            result = await handler_func(update, context)
+            logger.info(f"Обработчик '{handler_name}' успешно завершился")
+            return result
+
+        except Exception as e:
+            logger.error(
+                f"Ошибка в обработчике '{handler_name}': {str(e)}",
+                exc_info=True,  # Добавляет traceback в лог
+            )
+            await error_message(update)  # Ваша функция для отправки сообщения об ошибке
+            return ConversationHandler.START  # Или другой подходящий fallback
+
+    return wrapper

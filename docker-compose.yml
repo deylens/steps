@@ -1,5 +1,25 @@
 services:
 
+  bot:
+      container_name: steps_bot
+      build:
+        context: .
+        dockerfile: src/docker/Dockerfile.bot
+      env_file:
+        - ./.env
+      volumes:
+        - botdata:/app/src/bot
+      command: bash -c "uv run alembic upgrade heads &&
+              uv run python src/db_data.py &&
+              uv run python src/bot/main.py"
+
+
+      depends_on:
+         db:
+          condition: service_healthy
+      networks:
+        - postgres
+      restart: on-failure
   db:
     container_name: pg_db
     image: postgres:16
@@ -35,3 +55,4 @@ networks:
 
 volumes:
   postgres:
+  botdata:

@@ -2,9 +2,9 @@ from datetime import date
 
 from sqlalchemy.sql.elements import ColumnElement
 
-from models.database.models import Child as ChildSchema
-from models.domain.models import Child
-from repos.base import BaseRepository
+from src.models.database.models import Child as ChildSchema
+from src.models.domain.models import Child
+from src.repos.base import BaseRepository
 
 
 class ChildRepository(BaseRepository):

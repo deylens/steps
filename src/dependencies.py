@@ -3,14 +3,14 @@ from collections.abc import Generator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from repos.child import ChildRepository
-from repos.diagnosis import DiagnosisRepository
-from repos.skill import SkillRepository
-from services.child_service import ChildService
-from services.diagnosis_service import DiagnosisService
-from services.recommendation_service import RecommendationService
 from src.config.settings import app_config
+from src.repos.child import ChildRepository
+from src.repos.diagnosis import DiagnosisRepository
+from src.repos.skill import SkillRepository
 from src.repos.user import UserRepository
+from src.services.child_service import ChildService
+from src.services.diagnosis_service import DiagnosisService
+from src.services.recommendation_service import RecommendationService
 from src.services.user_service import UserService
 
 engine = create_engine(app_config.db.db_url)

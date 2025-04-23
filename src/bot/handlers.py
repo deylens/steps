@@ -10,6 +10,7 @@ from utils import (
     get_child_data,
     get_message,
     get_recommendation,
+    log_handler_errors,
     update_skill,
 )
 
@@ -22,6 +23,7 @@ from src.dependencies import (
 )
 
 
+@log_handler_errors
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     """
     Начало диалога и вывод меню.
@@ -68,6 +70,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     return States.START.value
 
 
+@log_handler_errors
 async def handle_menu_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     """
     Обработка выбора пользователя в меню.
@@ -92,6 +95,7 @@ async def handle_menu_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return await anonymous(update, context)
 
 
+@log_handler_errors
 async def choice_child(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     query = update.callback_query
     await query.answer()
@@ -104,6 +108,7 @@ async def choice_child(update: Update, context: ContextTypes.DEFAULT_TYPE) -> An
     return States.CHOICE_CHILD
 
 
+@log_handler_errors
 async def handle_choice_child(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> Any:
@@ -140,6 +145,7 @@ async def handle_choice_child(
         return await ask_question(update, context)
 
 
+@log_handler_errors
 async def handle_add_child(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     context.user_data["child"] = {}
     query = update.callback_query
@@ -148,6 +154,7 @@ async def handle_add_child(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     return States.ADD_NAME
 
 
+@log_handler_errors
 async def handle_add_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     user_input = update.message.text
     context.user_data["child"]["name"] = user_input
@@ -158,6 +165,7 @@ async def handle_add_name(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     return States.ADD_DATE
 
 
+@log_handler_errors
 async def handle_add_date(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     service = get_child_service()
     user_input = update.message.text
@@ -188,6 +196,7 @@ async def handle_add_date(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     return States.CHOICE_CHILD
 
 
+@log_handler_errors
 async def ask_question(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     """
     Вопросы из списка SKILL.
@@ -217,34 +226,55 @@ async def ask_question(update: Update, context: ContextTypes.DEFAULT_TYPE) -> An
         return await start(update, context)
 
 
+@log_handler_errors
 async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     """
     Обрабатывает ответ пользователя на вопрос.
 
     """
-    answer_data = {"Выполнил": True, "Не выполнил": False}
-    query = update.callback_query
     try:
+        query = update.callback_query
         await query.answer()
+
+        child_id = context.user_data["current_child"]
+        if not child_id:
+            await query.message.reply_text("Сессия устарела, возвращаемся к началу")
+            return await start(update, context)
+
+        answer_data = {"Выполнил": True, "Не выполнил": False}
+        user_answer = query.data
+
+        if user_answer not in answer_data:
+            logging.warning(f"Неожиданный ответ - {user_answer}")
+            await query.message.reply_text(
+                "Ошибка в получении ответа, возвращаемся к вопросу"
+            )
+            return await ask_question(update, context)
+        service = get_diagnosis_service()
+        questions = context.user_data["questions"]
+        if not questions:
+            query.message.reply_text(
+                "Ошибка в формировании вопросов, возвращаемся к началу"
+            )
+            return await start(update, context)
+
+        current_question = context.user_data.get("current_questions", 0)
+        answer = answer_data[user_answer]
+        service.submit_question(
+            child_id=child_id,
+            skill_id=questions[current_question].id,
+            skill_type=questions[current_question].skill_type_id,
+            answer=answer,
+        )
+        context.user_data["current_questions"] += 1
+        return await ask_question(update, context)
+
     except error.BadRequest as e:
         if "Query is too old" in str(e):
             logging.warning(f"Expire callback: {e}")
-    user_answer = query.data
-    service = get_diagnosis_service()
-    questions = context.user_data["questions"]
-    child_id = context.user_data["current_child"]
-    current_question = context.user_data.get("current_questions", 0)
-    answer = answer_data[user_answer]
-    service.submit_question(
-        child_id=child_id,
-        skill_id=questions[current_question].id,
-        skill_type=questions[current_question].skill_type_id,
-        answer=answer,
-    )
-    context.user_data["current_questions"] += 1
-    return await ask_question(update, context)
 
 
+@log_handler_errors
 async def instruction(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     """
     Обработчик для инструкции.
@@ -264,6 +294,7 @@ async def instruction(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any
     return States.INSTRUCTION
 
 
+@log_handler_errors
 async def result(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     try:
         message = await get_message(update)
@@ -320,6 +351,7 @@ async def result(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
         return await start(update, context)
 
 
+@log_handler_errors
 async def handle_result(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     query = update.callback_query
     await query.answer()
@@ -338,6 +370,7 @@ async def handle_result(update: Update, context: ContextTypes.DEFAULT_TYPE) -> A
         return States.RESULT
 
 
+@log_handler_errors
 async def history(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     query = update.callback_query
     keyboard = ["Назад"]
@@ -352,6 +385,7 @@ async def history(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     return States.HISTORY
 
 
+@log_handler_errors
 async def anonymous(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     """
     Обработчик для анонимного опроса
@@ -362,6 +396,7 @@ async def anonymous(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     return States.AGE
 
 
+@log_handler_errors
 async def handle_age_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     """
     Получаем возраст для анонимного опроса

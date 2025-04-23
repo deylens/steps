@@ -2,10 +2,10 @@ import datetime
 
 from sqlalchemy.sql.elements import ColumnElement
 
-from models.database.models import DiagnosisHistory as DiagnosisHistorySchema
-from models.database.models import DiagnosisResult as DiagnosisSchema
-from models.domain.models import DiagnosisHistory, DiagnosisResult
-from repos.base import BaseRepository
+from src.models.database.models import DiagnosisHistory as DiagnosisHistorySchema
+from src.models.database.models import DiagnosisResult as DiagnosisSchema
+from src.models.domain.models import DiagnosisHistory, DiagnosisResult
+from src.repos.base import BaseRepository
 
 
 class DiagnosisRepository(BaseRepository):
@@ -14,7 +14,9 @@ class DiagnosisRepository(BaseRepository):
     _schema_result = DiagnosisSchema
     _model_result = DiagnosisResult
 
-    def get_diagnosis(self, child_id: int, skill_type_id: int) -> DiagnosisResult:
+    def get_diagnosis(
+        self, child_id: int, skill_type_id: int
+    ) -> DiagnosisResult | None:
         """
         Retrieves last child's diagnosis result for skill type.
 
