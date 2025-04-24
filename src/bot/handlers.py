@@ -1,4 +1,5 @@
 import logging
+from datetime import date
 from typing import Any
 
 from data import DATA, TEXT, States
@@ -7,18 +8,14 @@ from telegram.ext import ContextTypes
 from utils import (
     birth_date,
     error_message,
-    get_child_data,
     get_message,
-    get_recommendation,
     log_handler_errors,
-    update_skill,
 )
 
 from src.dependencies import (
     get_child_service,
     get_diagnosis_service,
     get_recommendation_service,
-    get_user_repository,
     get_user_service,
 )
 
@@ -26,7 +23,7 @@ from src.dependencies import (
 @log_handler_errors
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     """
-    Начало диалога и вывод меню.
+    Start a dialogue and display a menu.
 
     """
     try:
@@ -36,12 +33,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
             {
                 "user": None,
                 "current_questions": 0,
-                "is_anonymous": False,
                 "children": None,
                 "current_child": None,
+                "current_date": None,
             }
         )
-
         telegram_id = update.effective_user.id
         user = service.get_user_by_telegram_id(telegram_id=telegram_id)
         context.user_data["user"] = user
@@ -56,7 +52,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
                 f"{update.effective_user.full_name}, Вы зарегистрированы"
             )
 
-        menu_keyboard = ["Инструкция", "Диагностика", "Анонимно"]
+        menu_keyboard = ["Инструкция", "Диагностика"]
 
         await message.reply_text(
             "Пожалуйста, выберите:", reply_markup=build_keyboard(menu_keyboard)
@@ -73,7 +69,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
 @log_handler_errors
 async def handle_menu_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     """
-    Обработка выбора пользователя в меню.
+    Processing user selection in the menu.
 
     """
     query = update.callback_query
@@ -89,17 +85,18 @@ async def handle_menu_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
     elif choice == "Назад":
         return States.START
 
-    elif choice == "Анонимно":
-        context.user_data["is_anonymous"] = True
-        await query.message.reply_text(f"{TEXT['anonymous']}")
-        return await anonymous(update, context)
-
 
 @log_handler_errors
 async def choice_child(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
+    """
+    Child selection menu
+
+    """
     query = update.callback_query
     await query.answer()
-    keyboard = ["Выбрать", "Добавить"]
+    service = get_child_service()
+    children = service.get_children(context.user_data["user"].id)
+    keyboard = ["Выбрать", "Добавить"] if len(children) > 0 else ["Добавить"]
     await query.edit_message_text(
         text="Выберете или добавьте данные ребенка:",
         reply_markup=build_keyboard(keyboard),
@@ -112,6 +109,10 @@ async def choice_child(update: Update, context: ContextTypes.DEFAULT_TYPE) -> An
 async def handle_choice_child(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> Any:
+    """
+    Processing child selection in the menu.
+
+    """
     query = update.callback_query
     service = get_child_service()
     await query.answer()
@@ -147,6 +148,10 @@ async def handle_choice_child(
 
 @log_handler_errors
 async def handle_add_child(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
+    """
+    Adding child's name
+
+    """
     context.user_data["child"] = {}
     query = update.callback_query
     await query.edit_message_text(text="Введите имя ребенка")
@@ -156,6 +161,10 @@ async def handle_add_child(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 @log_handler_errors
 async def handle_add_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
+    """
+    Processing adding child's name
+
+    """
     user_input = update.message.text
     context.user_data["child"]["name"] = user_input
     await update.message.reply_text(
@@ -167,6 +176,10 @@ async def handle_add_name(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 @log_handler_errors
 async def handle_add_date(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
+    """
+    Adding child's birth date
+
+    """
     service = get_child_service()
     user_input = update.message.text
     context.user_data["child"]["date"] = birth_date(user_input)
@@ -199,7 +212,7 @@ async def handle_add_date(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 @log_handler_errors
 async def ask_question(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     """
-    Вопросы из списка SKILL.
+    Output of questions by list and get answer
 
     """
     try:
@@ -211,9 +224,8 @@ async def ask_question(update: Update, context: ContextTypes.DEFAULT_TYPE) -> An
 
         if current_question < len(questions):
             skill = questions[current_question]
-            print(skill)
             await message.reply_text(
-                text=f" skill {skill.criteria}, skill_id {skill.id} skill_type {skill.skill_type_id}, age_start {skill.age_start} age {skill.age_actual}",
+                text=f" {skill.criteria}",
                 reply_markup=build_keyboard(["Выполнил", "Не выполнил"]),
             )
 
@@ -229,7 +241,7 @@ async def ask_question(update: Update, context: ContextTypes.DEFAULT_TYPE) -> An
 @log_handler_errors
 async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     """
-    Обрабатывает ответ пользователя на вопрос.
+    Processing the answer to the questions
 
     """
     try:
@@ -277,7 +289,7 @@ async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> A
 @log_handler_errors
 async def instruction(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     """
-    Обработчик для инструкции.
+    Output istructions
 
     """
     query = update.callback_query
@@ -300,24 +312,27 @@ async def result(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
         message = await get_message(update)
         service = get_diagnosis_service()
         child_id = context.user_data["current_child"]
+        current_date: date = date.today()
         if not child_id:
             await message.reply_text("Ребенок не найден, вернёмся к началу")
             return await start(update, context)
+        result = service._get_diagnosis_results(child_id=child_id)
+        service.save_diagnosis(child_id=child_id, result=result)
+        recommendations = list(
+            get_recommendation_service().get_recommendations(
+                child_id=child_id, date=current_date
+            )
+        )
+        logging.info(recommendations)
 
-        recommendations = get_recommendation_service().get_recommendations(child_id)
         if not recommendations:
             await message.reply_text("Рекомендации не найдены")
             return States.RESULT
 
-        result = service._get_diagnosis_results(child_id=child_id)
-        service.save_diagnosis(child_id=child_id, result=result)
-        finish_result = service.finish_diagnosis(child_id=child_id)
-        logging.info(f"{finish_result}")
         if "current_recommend_index" not in context.user_data:
             context.user_data["current_recommend_index"] = 0
 
         current_index = context.user_data.get("current_recommend_index", 0)
-        recommend = finish_result["skill_mastered"]
         keyboard = [
             InlineKeyboardButton("История", callback_data="history"),
             InlineKeyboardButton("Старт", callback_data="start"),
@@ -326,8 +341,8 @@ async def result(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
         if current_index == 0:
             await message.reply_text(text="Идёт подсчёт результата")
 
-        if current_index < len(recommend.items()):
-            item = list(recommend.items())[current_index]
+        if current_index < len(recommendations):
+            item = recommendations[current_index]
             await message.reply_text(
                 f"{item}",
                 reply_markup=InlineKeyboardMarkup(
@@ -353,6 +368,10 @@ async def result(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
 
 @log_handler_errors
 async def handle_result(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
+    """
+    Processing result selections
+
+    """
     query = update.callback_query
     await query.answer()
     choice = query.data
@@ -372,6 +391,10 @@ async def handle_result(update: Update, context: ContextTypes.DEFAULT_TYPE) -> A
 
 @log_handler_errors
 async def history(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
+    """
+    Output history of polls
+    !Not ready yet!
+    """
     query = update.callback_query
     keyboard = ["Назад"]
     await query.edit_message_text(
@@ -383,30 +406,6 @@ async def history(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
         return States.START
 
     return States.HISTORY
-
-
-@log_handler_errors
-async def anonymous(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
-    """
-    Обработчик для анонимного опроса
-
-    """
-    message = await get_message(update)
-    await message.reply_text("Введите возраст ребенка в годах и месяцах, к примеру 1,5")
-    return States.AGE
-
-
-@log_handler_errors
-async def handle_age_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
-    """
-    Получаем возраст для анонимного опроса
-
-    """
-    message = await get_message(update)
-    user_input = message.text
-    context.user_data.update({"age": user_input, "current_questions": 0})
-
-    return await ask_question(update, context)
 
 
 def build_keyboard(  # type: ignore

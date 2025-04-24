@@ -13,7 +13,7 @@ from src.services.diagnosis_service import DiagnosisService
 from src.services.recommendation_service import RecommendationService
 from src.services.user_service import UserService
 
-engine = create_engine(app_config.db.db_url)
+engine = create_engine(app_config.db.db_url, pool_size=20, max_overflow=20)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 

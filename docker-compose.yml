@@ -1,5 +1,5 @@
 services:
-
+# для локальной работы закоментировать bot
   bot:
       container_name: steps_bot
       build:
@@ -55,4 +55,4 @@ networks:
 
 volumes:
   postgres:
-  botdata:
+  # botdata:

@@ -70,12 +70,6 @@ async def main() -> None:
                 )
             ],
             States.HISTORY.value: [CallbackQueryHandler(handlers.history)],
-            States.ANONYMOUS.value: [CallbackQueryHandler(handlers.anonymous)],
-            States.AGE.value: [
-                MessageHandler(
-                    filters.TEXT & ~filters.COMMAND, handlers.handle_age_text
-                )
-            ],
         },
         fallbacks=[CommandHandler("start", handlers.start)],
         per_message=False,

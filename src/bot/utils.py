@@ -5,72 +5,14 @@ from functools import wraps
 from typing import Any
 
 from telegram import Update
-from telegram.ext import ContextTypes, ConversationHandler
+from telegram.ext import ContextTypes
+
+from src.bot.data import States
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
-
-
-def update_skill(data: dict, current_question: int, approve: str) -> dict:
-    """
-    Сохранение ответов в промежуточном словаре
-    Args:
-        data: список с вопросами,
-        current_questions:  текст вопроса, approve: ответ вопроса
-
-    Return:
-        data: промежуточный список с ответами на вопрос
-    """
-
-    if approve == "Освоил":
-        data["questions"][current_question]["approve"] = True
-    else:
-        data["questions"][current_question]["approve"] = False
-    return data
-
-
-def get_child_data(data: dict) -> list:
-    """
-    Получение списка для клавиатуры бота
-    Args:
-        data : список детей пользователя
-
-    return:
-        data: список детей для клавиатуры бота
-
-    """
-    child_list = []
-    for child in data:
-        name = child.name
-        date = child.birth_date
-        current_child = f"{name} {date}"
-        child_list.append(current_child)
-    return child_list
-
-
-def get_recommendation(data: dict) -> list:
-    """
-    Получение рекомендаций в зависимости от ответов
-    Args:
-        data: промежуточный список с вопросами и ответами
-
-    Return:
-        data: список словарей, с ответами False
-    """
-    _recom_list = []
-
-    # Итерируемся по вопросам
-    for recom in data["questions"]:
-        if not recom["approve"]:
-            _recom_dict = {
-                "name": recom["name"],
-                "recommendation": recom["recommendation"],
-            }
-            _recom_list.append(_recom_dict)
-
-    return _recom_list
 
 
 async def get_message(update: Update) -> Update:
@@ -128,6 +70,6 @@ def log_handler_errors(handler_func: Callable) -> Callable:
                 exc_info=True,  # Добавляет traceback в лог
             )
             await error_message(update)  # Ваша функция для отправки сообщения об ошибке
-            return ConversationHandler.START  # Или другой подходящий fallback
+            return States.START  # Или другой подходящий fallback
 
     return wrapper

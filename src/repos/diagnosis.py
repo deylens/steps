@@ -105,3 +105,29 @@ class DiagnosisRepository(BaseRepository):
         self.add(result)
         self.flush()
         return self._model_result.model_validate(result)
+
+    def mastered_skill(
+        self, child_id: int, date: datetime.date | None
+    ) -> dict[int, bool]:
+        """
+        Checks if a skill is mastered by a child.
+
+        Args:
+            child_id (int): The ID of the child.
+            date (datetime.datetime): Date for filters, or None for all
+
+        Returns:
+            dict: skill_id as key and mastered as value
+        """
+        filters = (
+            [self._schema.child_id == child_id, self._schema.date == date]
+            if date
+            else [self._schema.child_id == child_id]
+        )
+        res = self._query(filters=filters, order_by="date DESC").all()
+        result_dict: dict[int, bool] = {}
+        if not res:
+            return result_dict
+        for item in res:
+            result_dict[item.skill_id] = item.mastered
+        return result_dict

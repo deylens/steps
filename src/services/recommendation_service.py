@@ -1,3 +1,5 @@
+import datetime
+
 from src.repos.child import ChildRepository
 from src.repos.diagnosis import DiagnosisRepository
 from src.repos.skill import SkillRepository
@@ -14,7 +16,9 @@ class RecommendationService:
         self.skill_repository = skill_repository
         self.diagnosis_repository = diagnosis_repository
 
-    def get_recommendations(self, child_id: int) -> list[str]:
+    def get_recommendations(
+        self, child_id: int, date: datetime.date | None
+    ) -> list[str]:
         """Retrieves a list of recommendations by child's id."""
         results = []
         skill_types = self.skill_repository.get_skill_types()
@@ -29,20 +33,28 @@ class RecommendationService:
             return []
 
         child = self.child_repository.get_child(child_id)
+        mastered = self.diagnosis_repository.mastered_skill(
+            child_id=child_id, date=date
+        )
         if child:
             skill_type_age = {
                 result.skill_types_id: result.age_assessment for result in results
             }
             skills = self.skill_repository.get_skills_list()
-            skills.sort(key=lambda skill: skill.age_actual)
+            skills.sort(
+                key=lambda skill: skill.age_actual if skill.age_actual else float("inf")
+            )
             recommendations = []
-
+            mastered = self.diagnosis_repository.mastered_skill(
+                child_id=child_id, date=date
+            )
             for skill in skills:
                 if skill.skill_type_id in skill_type_age:
                     if (
-                        child.age_months
-                        >= skill.age_actual
-                        > skill_type_age[skill.skill_type_id]
+                        skill.age_actual is not None
+                        and child.age_months >= skill.age_actual
+                        and skill.age_actual > skill_type_age[skill.skill_type_id]  # type: ignore
+                        and mastered.get(skill.id) == False
                     ):
                         recommendations.append(skill.recommendation)
 
