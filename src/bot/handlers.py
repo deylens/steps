@@ -2,7 +2,7 @@ import logging
 from datetime import date
 from typing import Any
 
-from data import DATA, TEXT, States
+from data import TEXT, States
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, error
 from telegram.ext import ContextTypes
 from utils import (
@@ -308,6 +308,10 @@ async def instruction(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any
 
 @log_handler_errors
 async def result(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
+    """
+    Result output from user's poll
+
+    """
     try:
         message = await get_message(update)
         service = get_diagnosis_service()
@@ -389,11 +393,12 @@ async def handle_result(update: Update, context: ContextTypes.DEFAULT_TYPE) -> A
         return States.RESULT
 
 
+# TODO
 @log_handler_errors
 async def history(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
     """
     Output history of polls
-    !Not ready yet!
+
     """
     query = update.callback_query
     keyboard = ["Назад"]
@@ -411,27 +416,25 @@ async def history(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Any:
 def build_keyboard(  # type: ignore
     current_list: list[str], callback_data=None, **kwargs: Any
 ) -> InlineKeyboardMarkup:
-    """Создает клавиатуру с вариантами ответов.
+    """
+    Create keyboard with selection choice
 
     Args:
-        current_list: Список текстов кнопок или кортежей (текст, значение)
-        callback_data: Базовый callback_data (если не используется список кортежей)
-        **kwargs: Дополнительные параметры (будут добавлены в callback_data через ";")
+        current_list: list text buttons or tuple (text, value)
+        callback_data: Basic callback_data (without current_list in Args)
+        **kwargs: Extra params (add in callback_data across ";")
     """
 
     buttons = []
 
     for item in current_list:
-        # Определяем текст кнопки и значение для callback_data
         if isinstance(item, tuple) and len(item) == 2:
             text, value = item
         else:
             text = value = item
 
-        # Формируем основной callback_data
         cb_data = str(value) if callback_data is None else callback_data
 
-        # Добавляем kwargs если они есть
         if kwargs:
             kwargs_str = ";".join(f"{k}={v}" for k, v in kwargs.items())
             cb_data = f"{cb_data};{kwargs_str}"

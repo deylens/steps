@@ -2,6 +2,7 @@ services:
 # для локальной работы закоментировать bot
   bot:
       container_name: steps_bot
+      profiles: [steps_bot]
       build:
         context: .
         dockerfile: src/docker/Dockerfile.bot
@@ -55,4 +56,4 @@ networks:
 
 volumes:
   postgres:
-  # botdata:
+  botdata:

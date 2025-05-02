@@ -1,6 +1,7 @@
 import json
 
 from sqlalchemy import create_engine
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
 from config.settings import app_config
@@ -29,9 +30,24 @@ def main() -> None:
         skills.append(models.Skill(skill_type=skill_type, **el))
 
     with Session(engine) as session:
-        session.add_all(skill_types.values())
-        session.add_all(skills)
-        session.commit()
+        for item in skill_types:
+            try:
+                session.add(item.values())
+                session.commit()
+            except IntegrityError:
+                session.rollback()
+                continue
+        for item in skills:
+            try:
+                session.add(item)
+                session.commit()
+            except IntegrityError:
+                session.rollback()
+                continue
+
+        # session.add_all(skill_types.values())
+        # session.add_all(skills)
+        # session.commit()
     return None
 
 

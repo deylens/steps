@@ -26,7 +26,7 @@ async def get_message(update: Update) -> Update:
 
 async def error_message(update: Update) -> Update:
     """
-    Сообщение пользователю об ошибке при взаиможействии с ботом
+    Message for users about some error
 
     Args: Update из telegram.ext
     """
@@ -47,11 +47,11 @@ def birth_date(user_date: str) -> date:
 
 def log_handler_errors(handler_func: Callable) -> Callable:
     """
-    Декоратор для логирования ошибок в обработчиках python-telegram-bot.
-    Логирует:
-    - Начало выполнения обработчика
-    - Успешное завершение
-    - Возникшие ошибки
+    Decorator for logging errors to handlers
+    Logs:
+    - Start work handler
+    - Success work
+    - Raise errors
     """
 
     @wraps(handler_func)
@@ -67,9 +67,9 @@ def log_handler_errors(handler_func: Callable) -> Callable:
         except Exception as e:
             logger.error(
                 f"Ошибка в обработчике '{handler_name}': {str(e)}",
-                exc_info=True,  # Добавляет traceback в лог
+                exc_info=True,
             )
-            await error_message(update)  # Ваша функция для отправки сообщения об ошибке
-            return States.START  # Или другой подходящий fallback
+            await error_message(update)
+            return States.START
 
     return wrapper

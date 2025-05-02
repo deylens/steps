@@ -16,16 +16,8 @@ COPY pyproject.toml uv.lock ./
 RUN uv add alembic
 RUN uv sync
 
-COPY src/bot ./src/bot
+COPY src/ ./src/
 RUN chmod -R 777 /app/src/bot
-COPY src/config ./src/config
-COPY src/database ./src/database
-COPY src/models ./src/models
-COPY src/repos ./src/repos
-COPY src/services ./src/services
-COPY src/db_data.py ./src/
-COPY src/dependencies.py ./src/
-COPY src/data.json ./src/
 COPY ./alembic.ini ./
 
 ENV PYTHONPATH=/app

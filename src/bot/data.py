@@ -14,31 +14,6 @@ class States(IntEnum):
     AGE = 9
 
 
-DATA = {
-    "id_user": None,
-    "child": [{"name": "Max", "date": "12.12.2012"}],
-    "questions": [
-        {
-            "name": "First skill",
-            "approve": None,
-            "creteria": "this is first question",
-            "recommendation": "first recommend",
-        },
-        {
-            "name": "Second skill",
-            "approve": None,
-            "creteria": "this is second question",
-            "recommendation": "second recommend",
-        },
-        {
-            "name": "Third skill",
-            "approve": None,
-            "creteria": "this is third question",
-            "recommendation": "third recommend",
-        },
-    ],
-}
-
 TEXT = {
     "greetings": "Приветсвуем Вас! \n"
     "Этот бот предназначен для диагностики и раннего выявления задержек психо-моторного развитя у детей \n"
