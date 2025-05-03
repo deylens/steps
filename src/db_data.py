@@ -45,9 +45,6 @@ def main() -> None:
                 session.rollback()
                 continue
 
-        # session.add_all(skill_types.values())
-        # session.add_all(skills)
-        # session.commit()
     return None
 
 
