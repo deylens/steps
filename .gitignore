@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+.python-version
 
 # C extensions
 *.so
@@ -25,6 +26,10 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+.venv/
+.vscode
+src/database/pgdata_test/
+src/database/pgdata_main/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -169,3 +174,10 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# bot callback data
+databot
+src/bot/databot
+
+# extra json
+*.json

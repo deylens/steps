@@ -1,6 +1,6 @@
 from datetime import date
 
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 
 
 class Base(BaseModel):
@@ -27,6 +27,20 @@ class Child(Base):
     name: str
     birth_date: date
     diagnosis_history: list["DiagnosisHistory"] = []
+
+    @computed_field
+    @property
+    def age_months(self) -> int:
+        today = date.today()
+        years_diff = today.year - self.birth_date.year
+        months_diff = today.month - self.birth_date.month
+        full_months = years_diff * 12 + months_diff
+
+        if today.day < self.birth_date.day:
+            full_months -= 1
+
+        return full_months
+
     diagnosis_result: list["DiagnosisResult"] = []
 
 

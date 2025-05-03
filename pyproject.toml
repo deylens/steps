@@ -12,6 +12,9 @@ dependencies = [
     "pydantic-settings>=2.8.0",
     "pytest>=8.3.5",
     "sqlalchemy>=2.0.38",
+    "pytest>=8.3.4",
+    "psycopg2-binary>=2.9.10",
+    "python-telegram-bot[callback-data,standard]>=22.0",
 ]
 
 [dependency-groups]
@@ -40,6 +43,13 @@ no_implicit_optional = false
 disallow_any_generics = false
 disallow_untyped_decorators = false
 disallow_any_unimported = false
+disallow_any_decorated = false
+disallow_any_expr = false
+disallow_subclassing_any = true
+disable_error_code = [
+    "misc",         # ignore Class cannot subclass "BaseRepository" (has type "Any")
+    "no-any-return" # ignore Returning Any from function declared to return "..."
+]
 
 [tool.pytest.ini_options]
 minversion = "8.3.5"

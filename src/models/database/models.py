@@ -1,4 +1,5 @@
 # ruff:noqa:UP037
+
 from __future__ import annotations
 
 from datetime import date
@@ -40,14 +41,14 @@ class Child(Base):
     )
 
     def __repr__(self) -> str:
-        return f"<{self.name} {self.birth_date}>"
+        return f"<{self.name} {self.birth_date} {self.id}>"
 
 
 class SkillType(Base):
     __tablename__ = "skill_types"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(50), unique=True)
+    name: Mapped[str] = mapped_column(Text, unique=True)
     skill: Mapped[list["Skill"]] = relationship(back_populates="skill_type")
 
     diagnosis_result: Mapped[list["DiagnosisResult"]] = relationship(
@@ -68,7 +69,7 @@ class Skill(Base):
     skill_type_id: Mapped[int] = mapped_column(
         ForeignKey("skill_types.id"), nullable=False
     )
-    name: Mapped[str] = mapped_column(String(50), nullable=False)
+    name: Mapped[str] = mapped_column(Text, nullable=False)
     criteria: Mapped[str] = mapped_column(Text)
     recommendation: Mapped[str] = mapped_column(Text, nullable=False)
     age_start: Mapped[int] = mapped_column()

@@ -8,7 +8,7 @@ from src.tests.seed_data import SEED_DATA
 from src.tests.test_helpers import create_in_memory_database
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def db_session() -> Generator[Session]:
     """
     Fixture that provides a SQLAlchemy session for use in tests.
