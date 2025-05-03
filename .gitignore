@@ -178,3 +178,6 @@ cython_debug/
 # bot callback data
 databot
 src/bot/databot
+
+# extra json
+*.json
