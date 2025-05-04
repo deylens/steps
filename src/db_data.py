@@ -30,9 +30,9 @@ def main() -> None:
         skills.append(models.Skill(skill_type=skill_type, **el))
 
     with Session(engine) as session:
-        for item in skill_types:
+        for item in skill_types.values():
             try:
-                session.add(item.values())
+                session.add(item)
                 session.commit()
             except IntegrityError:
                 session.rollback()
