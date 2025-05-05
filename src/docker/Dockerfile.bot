@@ -1,0 +1,24 @@
+FROM python:3.13-slim
+
+ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE 1
+
+WORKDIR /app/
+
+
+RUN cd /app/
+
+RUN pip install --no-cache-dir --upgrade uv && \
+    uv venv
+
+COPY pyproject.toml uv.lock ./
+
+RUN uv add alembic
+RUN uv sync
+
+COPY src/ ./src/
+RUN chmod -R 777 /app/src/bot
+COPY ./alembic.ini ./
+
+ENV PYTHONPATH=/app
+ENV TZ=UTC

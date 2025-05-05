@@ -18,7 +18,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 
-database_url = settings.db_config.db_url
+database_url = settings.app_config.db.db_url
 if database_url is None:
     raise ValueError("DATABASE_URL environment variable is not set")
 
@@ -62,7 +62,6 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode.
-
     In this scenario we need to create an Engine
     and associate a connection with the context.
 

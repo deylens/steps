@@ -6,9 +6,15 @@ requires-python = ">=3.12"
 dependencies = [
     "alembic>=1.14.1",
     "fastapi[standard]>=0.115.8",
-    "psycopg2>=2.9.10",
+    "mypy>=1.15.0",
+    "psycopg2-binary>=2.9.10",
+    "pydantic>=2.10.6",
     "pydantic-settings>=2.8.0",
+    "pytest>=8.3.5",
     "sqlalchemy>=2.0.38",
+    "pytest>=8.3.4",
+    "psycopg2-binary>=2.9.10",
+    "python-telegram-bot[callback-data,standard]>=22.0",
 ]
 
 [dependency-groups]
@@ -17,5 +23,42 @@ dev = [
 ]
 
 [tool.ruff]
-select = ["I", "UP", "B", "A"]
 include = ["src/**/*.py"]
+extend-exclude = ["src/database/migrations/*.py"]
+
+[tool.ruff.lint]
+select = ["I", "UP", "B", "A"]
+
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+strict = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+show_error_codes = true
+plugins = "pydantic.mypy"
+explicit_package_bases = true
+no_implicit_optional = false
+disallow_any_generics = false
+disallow_untyped_decorators = false
+disallow_any_unimported = false
+disallow_any_decorated = false
+disallow_any_expr = false
+disallow_subclassing_any = true
+disable_error_code = [
+    "misc",         # ignore Class cannot subclass "BaseRepository" (has type "Any")
+    "no-any-return" # ignore Returning Any from function declared to return "..."
+]
+
+[tool.pytest.ini_options]
+minversion = "8.3.5"
+addopts = "-ra -q"
+pythonpath = ["."]
+testpaths = [
+    "src/tests",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::UserWarning",
+]
